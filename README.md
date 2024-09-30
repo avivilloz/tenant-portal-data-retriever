@@ -18,7 +18,7 @@ This application retrieves tenant data from various tenant portals and stores it
 
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/tenant-portal-data-retriever.git
+   git clone https://github.com/avivilloz/tenant-portal-data-retriever.git
    cd tenant-portal-data-retriever
    ```
 
