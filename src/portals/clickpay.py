@@ -18,19 +18,17 @@ class ClickPayPortal(TenantPortal):
         try:
             self._login(username, password)
 
-            # Check if we're still logged in
-            if not self._check_login_status():
-                logger.error("User is not logged in after login attempt")
-                raise Exception("Login failed")
-
             user_data = self._get_user_profile()
 
             return {
                 "email": user_data["email"],
                 "phone": user_data["phone"],
+                "address": None,
+                "property_management": None,
             }
         except Exception as e:
             logger.error(f"Failed to retrieve data from ClickPay: {str(e)}")
+            logger.exception("Detailed error information:")
             raise
         finally:
             self._logout()
@@ -108,11 +106,18 @@ class ClickPayPortal(TenantPortal):
             raise Exception("Failed to retrieve user profile data")
 
     def _logout(self):
-        logout_url = f"{self.base_url}/app#PayNow"
-        self.session.get(logout_url)
-        logger.info("Logout successful")
+        logout_url = f"{self.base_url}/app"
+        headers = {
+            "content-type": "application/x-www-form-urlencoded",
+        }
+        data = {
+            "__EVENTTARGET": "LOGOUT",
+        }
 
-    def _check_login_status(self):
-        check_url = f"{self.base_url}/app#UserProfile"
-        response = self.session.get(check_url)
-        return "Logout" in response.text
+        try:
+            response = self.session.post(logout_url, headers=headers, data=data)
+            response.raise_for_status()
+            logger.info("Logout successful")
+        except requests.RequestException as e:
+            logger.error(f"Logout failed: {str(e)}")
+            raise Exception("Logout failed")
